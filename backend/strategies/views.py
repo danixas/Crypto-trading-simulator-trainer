@@ -2,29 +2,40 @@ from typing import List
 from django.shortcuts import get_list_or_404
 from ninja import Router
 from django.http import JsonResponse
+import pandas as pd
+from crypto.models import HistoricalPrice
 from .models import Strategy
-from .schemas import BacktestSchema, StrategySchema
-from .utils import fetch_historical_data
+from .schemas import BacktestMACSchema, BacktestEMASchema, BacktestRSISchema, StrategySchema
 from .strategies.mac_strategy import calculate as calculate_mac
 from .strategies.ema_strategy import calculate as calculate_ema
+from .strategies.rsi_strategy import calculate as calculate_rsi
 from backend.authentication import JWTAuth
-
-# Import other strategies similarly
+import pytz
 
 strategy_router = Router()
 
-@strategy_router.post('backtest/', response={200: dict})
-def backtest_strategy(request, data: BacktestSchema):
+@strategy_router.post('backtest/mac/', response={200: dict})
+def backtest_mac(request, data: BacktestMACSchema):
     df = fetch_historical_data(data.coin, data.date_range)
     if df.empty:
-        return JsonResponse({"pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, safe=False)
+        return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
+    result = calculate_mac(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
+    return JsonResponse(result, safe=False)
 
-    if data.strategy_name == 'MAC Strategy':
-        result = calculate_mac(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
-    elif data.strategy_name == 'EMA Strategy':
-        result = calculate_ema(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
-    # Add other strategies here
+@strategy_router.post('backtest/ema/', response={200: dict})
+def backtest_ema(request, data: BacktestEMASchema):
+    df = fetch_historical_data(data.coin, data.date_range)
+    if df.empty:
+        return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
+    result = calculate_ema(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
+    return JsonResponse(result, safe=False)
 
+@strategy_router.post('backtest/rsi/', response={200: dict})
+def backtest_rsi(request, data: BacktestRSISchema):
+    df = fetch_historical_data(data.coin, data.date_range)
+    if df.empty:
+        return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
+    result = calculate_rsi(df, data.initial_capital, data.max_trade_size_percent, data.period, data.overbought, data.oversold)
     return JsonResponse(result, safe=False)
 
 @strategy_router.get('list/', response=List[StrategySchema], auth=JWTAuth())
@@ -60,3 +71,19 @@ def execute_trades(data, initial_capital, max_trade_size_percent):
     win_loss_ratio = wins / losses if losses > 0 else 'infinite'
 
     return {"pnl": pnl, "numTrades": num_trades, "winLossRatio": win_loss_ratio, "finalCapital": capital}
+
+
+def fetch_historical_data(coin, date_range):
+    end_date = pd.Timestamp.now(tz=pytz.UTC)
+    start_date = end_date - pd.Timedelta(days=date_range)
+    granularity = 'hourly' if date_range > 1 else '5min'
+    data = HistoricalPrice.objects.filter(
+        timestamp__range=(start_date, end_date),
+        symbol__iexact=coin,
+        granularity=granularity
+    ).order_by('timestamp')
+    df = pd.DataFrame(list(data.values('timestamp', 'price')))
+    df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None).dt.tz_localize(pytz.UTC)
+    df['price'] = pd.to_numeric(df['price'], errors='coerce')
+    print(f"Data fetched with {len(df)} entries.")
+    return df

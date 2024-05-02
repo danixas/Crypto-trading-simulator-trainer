@@ -2,10 +2,10 @@ import requests
 from django.http import JsonResponse
 from django.utils.timezone import make_aware
 from datetime import datetime
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from ninja import Router
-from .models import HistoricalPrice, Transaction
-from .schemas import HistoricalPriceSchema, HistoricalDataRequest, TradeSchema, CloseTradeSchema
+from .models import Cryptocurrency, HistoricalPrice, Transaction
+from .schemas import TradeSchema, CloseTradeSchema, CryptocurrencySchema
 from backend.authentication import JWTAuth
 from django.utils.timezone import now, timedelta
 from ninja import Query
@@ -138,3 +138,26 @@ def fetch_and_store_historical_data(coin_id, days):
             )
     else:
         raise Exception("Failed to fetch data from CoinGecko")
+    
+
+@crypto_router.get('list/', response=list[CryptocurrencySchema])
+def get_cryptocurrencies(request):
+    return get_list_or_404(Cryptocurrency)
+
+@crypto_router.post('fetch_cryptocurrencies/')
+def fetch_cryptocurrencies(request):
+    import requests
+    url = 'https://api.coingecko.com/api/v3/coins/list'
+    response = requests.get(url)
+    if response.status_code == 200:
+        cryptocurrencies = response.json()
+        Cryptocurrency.objects.all().delete()
+        for crypto in cryptocurrencies:
+            Cryptocurrency.objects.create(
+                coin_id=crypto['id'],
+                symbol=crypto['symbol'],
+                name=crypto['name']
+            )
+        return {"success": True, "message": "Cryptocurrencies updated."}
+    else:
+        return {"success": False, "message": "Failed to fetch data from CoinGecko."}

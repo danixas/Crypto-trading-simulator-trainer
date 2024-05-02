@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,8 +43,25 @@ INSTALLED_APPS = [
     'crypto.apps.CryptoConfig',
     'users.apps.UsersConfig',
     'strategies',
-    'ninja'
+    'ninja',
+    'django_extensions'
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Short duration for testing
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Longer duration for refresh
+    'ROTATE_REFRESH_TOKENS': True,  # Whether to rotate refresh tokens upon each request
+    'BLACKLIST_AFTER_ROTATION': True,  # Enable if using token blacklisting
+
+    # Configure other settings as needed:
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -95,6 +113,9 @@ DATABASES = {
         'PASSWORD': 'bccryptoapp',
         'HOST': 'localhost',
         'PORT': '5432',
+        'TEST': {
+            'NAME': 'cryptodb_test',
+        },
     }
 }
 
@@ -153,3 +174,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'

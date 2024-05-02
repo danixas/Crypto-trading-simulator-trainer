@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from ninja.security import HttpBearer
 from .models import UserProfile, Trade
-from .schemas import AuthSchema, TokenSchema, UserProfileSchema, RegistrationSchema, MessageSchema, TradeSchema
+from .schemas import AuthSchema, TokenSchema, UserProfileSchema, RegistrationSchema, MessageSchema, TradeSchema, UpdateBalanceSchema
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from typing import List
@@ -71,3 +71,26 @@ def get_user_profile(request):
 def get_me(request):
     user = request.user
     return user
+
+@users_router.get('balance/', response={200: dict, 401: dict, 404: dict, 500: dict}, auth=JWTAuth())
+def get_balance(request):
+    user = request.auth
+    profile = get_object_or_404(UserProfile, user=user)
+    return 200, {"balance": profile.balance}
+
+@users_router.post('update_balance/', response={200: dict, 400: dict, 401: dict, 404: dict, 500: dict}, auth=JWTAuth())
+def update_balance(request, data: UpdateBalanceSchema):
+    user = request.auth
+    try:
+        profile = UserProfile.objects.get(user=user)
+        if data.balance < 0:
+            return 400, {"detail": "Balance cannot be negative"}
+        profile.balance = data.balance
+        profile.save()
+        return 200, {"balance": profile.balance}
+    except ValueError:
+        return 400, {"detail": "Invalid input for balance"}
+    except UserProfile.DoesNotExist:
+        return 404, {"detail": "UserProfile does not exist for the given user."}
+    except Exception as e:
+        return 500, {"detail": f"Internal Server Error: {str(e)}"}

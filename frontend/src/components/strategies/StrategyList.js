@@ -27,12 +27,12 @@ const StrategyList = ({ onSelectStrategy, onShowStrategyInfo }) => {
         <div>
             <h2>Available Strategies</h2>
             <ul>
-                {strategies.map((strategy) => (
+                {strategies.filter(strategy => strategy.name !== "EMA Strategy").map((strategy) => (
                     <li key={strategy.id}>
                         {strategy.name}
                         <Button variant="outline-success" onClick={() => onSelectStrategy(strategy)} style={{ marginRight: '10px', marginLeft: '10px'}}> Edit </Button>
-                        <button onClick={() => onShowStrategyInfo(true)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                            <InfoCircle /> {/* Info icon */}
+                        <button onClick={() => onShowStrategyInfo(strategy)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                            <InfoCircle />
                         </button>
                     </li>
                 ))}

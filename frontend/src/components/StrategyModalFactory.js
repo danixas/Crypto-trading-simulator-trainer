@@ -1,15 +1,18 @@
-// src/components/StrategyModalFactory.js
 import MACStrategyModal from './MACStrategyModal';
 import EMAStrategyModal from './EMAStrategyModal';
+import RSIStrategyModal from './RSIStrategyModal';
 
 const StrategyModalFactory = ({ strategyType, ...props }) => {
+    
     switch (strategyType) {
         case 'MAC Strategy':
-            return <MACStrategyModal {...props} />;
+            return <MACStrategyModal {...props} endpoint="mac" />;
         case 'EMA Strategy':
-            return <EMAStrategyModal {...props} />;
+            return <EMAStrategyModal {...props} endpoint="ema"/>;
+        case 'RSI Strategy':
+            return <RSIStrategyModal {...props} endpoint="rsi"/>;
         default:
-            return null;  // Return a default or null if no matching strategy is found
+            return null;
     }
 };
 

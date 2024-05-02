@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import CryptoChart from './charts/CryptoChart';
 import TradeCrypto from './TradeCrypto';
 import StrategyList from './strategies/StrategyList';
@@ -7,14 +8,17 @@ import StrategyModal from './MACStrategyModal';
 import StrategyInfoModal from './StrategyInfoModal';
 import StrategyModalFactory from './StrategyModalFactory';
 import '../App.css';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
+    const { fetchBalance } = useAuth();
     const [coin, setCoin] = useState('bitcoin');
     const [days, setDays] = useState('1');
     const [liveMode, setLiveMode] = useState(false);
     const [simulationSpeed, setSimulationSpeed] = useState(1000); // 1 second by default
     const [currentPrice, setCurrentPrice] = useState(0);
-    const [selectedStrategy, setSelectedStrategy] = useState(null);
+    const [editingStrategy, setEditingStrategy] = useState(null);
+    const [infoStrategy, setInfoStrategy] = useState(null);
     const [backtestResults, setBacktestResults] = useState(null);
     const [showStrategyModal, setShowStrategyModal] = useState(false);
     const [showStrategyInfoModal, setShowStrategyInfoModal] = useState(false);
@@ -28,40 +32,40 @@ const Dashboard = () => {
     };
 
     const handleStrategySelect = (strategy) => {
-        setSelectedStrategy(strategy);
-        setBacktestResults(null);
+        setEditingStrategy(strategy);
         setShowStrategyModal(true);
     };
 
-    const handleCloseModal = () => {
+    const handleShowStrategyInfo = (strategy) => {
+        setInfoStrategy(strategy); // Set the strategy for the info modal
+        setShowStrategyInfoModal(true);
+    };
+
+    const handleCloseStrategyModal = () => {
         setShowStrategyModal(false);
-    }
-    const handleRunBacktest = async (coin, strategyName, shortTerm, longTerm, dateRange, initialCapital, riskPerTrade) => {
-        const payload = {
-            coin,
-            strategy_name: strategyName,
-            short_term: shortTerm,
-            long_term: longTerm,
-            date_range: dateRange,
-            initial_capital: initialCapital,
-            max_trade_size_percent: riskPerTrade,
-        };
-        const response = await fetch(`http://localhost:8000/api/strategies/backtest/`, {
+    };
+
+    const handleCloseInfoModal = () => {
+        setShowStrategyInfoModal(false);
+    };
+    
+    const handleRunBacktest = async (strategyParameters, endpoint) => {
+        const response = await fetch(`http://localhost:8000/api/strategies/backtest/${endpoint}/`, { // Ensure URL is correctly constructed
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(strategyParameters)
         });
         if (response.ok) {
             const data = await response.json();
             setBacktestResults(data);
         } else {
-            console.error('Failed to run backtest');
+            console.error('Failed to run backtest', response.statusText);
             setBacktestResults(null);
         }
-    };
+    }
 
     return (
         <div className="dashboard">
@@ -72,6 +76,7 @@ const Dashboard = () => {
                         <select onChange={(e) => setCoin(e.target.value)}>
                             <option value="bitcoin">Bitcoin</option>
                             <option value="ethereum">Ethereum</option>
+                            <option value="ripple">XRP</option>
                         </select>
                         <select onChange={(e) => setDays(e.target.value)}>
                             <option value="1">Last 24 hours</option>
@@ -97,18 +102,25 @@ const Dashboard = () => {
                     <CryptoChart coin={coin} days={days} live={liveMode} onPriceUpdate={handlePriceUpdate} simulationSpeed={simulationSpeed} />
                 </div>
                 <div className="trade-section">
-                    <TradeCrypto coin={coin} currentPrice={currentPrice}/>
+                    <TradeCrypto coin={coin} currentPrice={currentPrice} fetchBalance={fetchBalance}/>
                 </div>
             </div>
             <div className="strategy-section">
-                <StrategyList onSelectStrategy={handleStrategySelect} onShowStrategyInfo={setShowStrategyInfoModal} />
-                {selectedStrategy && (
+                <StrategyList onSelectStrategy={handleStrategySelect} onShowStrategyInfo={handleShowStrategyInfo} />
+                {editingStrategy && (
                     <StrategyModalFactory
-                        strategyType={selectedStrategy.name}
+                        strategyType={editingStrategy.name}
                         show={showStrategyModal}
-                        handleClose={handleCloseModal}
-                        selectedStrategy={selectedStrategy}
+                        handleClose={handleCloseStrategyModal}
+                        selectedStrategy={editingStrategy}
                         onRunBacktest={handleRunBacktest}
+                    />
+                )}
+                {infoStrategy && (
+                    <StrategyInfoModal
+                        show={showStrategyInfoModal}
+                        onHide={handleCloseInfoModal}
+                        strategy={infoStrategy}
                     />
                 )}
                 {backtestResults && (

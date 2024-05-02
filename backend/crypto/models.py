@@ -32,3 +32,11 @@ class HistoricalPrice(models.Model):
     granularity = models.CharField(max_length=10, choices=[('hourly', 'Hourly'), ('5min', 'Five Minutes')], default='hourly')
     def __str__(self):
         return f"{self.symbol} {self.timestamp} - Price: {self.price} - Granularity: {self.granularity}"
+
+class Cryptocurrency(models.Model):
+    coin_id = models.CharField(max_length=100, unique=True)
+    symbol = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name} ({self.symbol.upper()})"

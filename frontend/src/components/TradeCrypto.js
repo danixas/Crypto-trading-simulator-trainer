@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Button } from 'react-bootstrap';
 
-const TradeCrypto = ({ coin, currentPrice }) => {
+const TradeCrypto = ({ coin, currentPrice, fetchBalance }) => {
+
     const [amountUSD, setAmountUSD] = useState('');
     const [activeTrades, setActiveTrades] = useState([]);
     const [completedTrades, setCompletedTrades] = useState([]);
@@ -30,6 +31,7 @@ const TradeCrypto = ({ coin, currentPrice }) => {
                     price: Number(response.data.price).toFixed(2)  // Convert and format
                 }]);
                 setAmountUSD('');
+                fetchBalance();
             } else {
                 alert(response.data.detail);
             }
@@ -46,6 +48,7 @@ const TradeCrypto = ({ coin, currentPrice }) => {
         }
     
         try {
+            
             const response = await axios.post(`http://localhost:8000/api/crypto/auth/close_trade/${transactionId}/`, {
                 price: Number(currentPrice)
             }, {
@@ -55,6 +58,7 @@ const TradeCrypto = ({ coin, currentPrice }) => {
             });
     
             if (response.data.detail === 'Trade closed successfully') {
+                fetchBalance();
                 const updatedActiveTrades = activeTrades.filter(trade => trade.transactionId !== transactionId);
                 setActiveTrades(updatedActiveTrades);
                 const closedTrade = activeTrades.find(trade => trade.transactionId === transactionId);

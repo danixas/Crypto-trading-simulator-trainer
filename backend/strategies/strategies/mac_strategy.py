@@ -26,6 +26,7 @@ def execute_trades(data, initial_capital, max_trade_size_percent):
             capital -= units_to_buy * row['price']
             current_investment = units_to_buy
             num_trades += 1
+            print(f"Buying {max_trade_size}$ at {row['timestamp']} - Price: {row['price']}, Units: {units_to_buy}")
         elif row['positions'] == -1 and current_investment > 0:  # Sell signal
             capital += current_investment * row['price']
             trade_pnl = (current_investment * row['price']) - (current_investment * data.at[data.index[data.index.get_loc(index) - 1], 'price'])
@@ -33,6 +34,7 @@ def execute_trades(data, initial_capital, max_trade_size_percent):
             if trade_pnl > 0:
                 wins += 1
             current_investment = 0
+            print(f"Selling {max_trade_size}$ at {row['timestamp']} - Price: {row['price']}, PnL: {trade_pnl}")
 
     losses = num_trades - wins
     win_loss_ratio = wins / losses if losses > 0 else 'infinite'

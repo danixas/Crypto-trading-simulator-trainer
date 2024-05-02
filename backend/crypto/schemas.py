@@ -22,3 +22,8 @@ class HistoricalPriceSchema(Schema):
 
 class CloseTradeSchema(Schema):
     price: float
+
+class CryptocurrencySchema(Schema):
+    coin_id: str
+    symbol: str
+    name: str

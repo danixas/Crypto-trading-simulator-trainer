@@ -10,7 +10,6 @@ class TokenSchema(Schema):
     access: str
 
 class UserProfileSchema(Schema):
-    #user_id: int = None  # Making it optional
     user: str
     balance: float
     total_trades: int
@@ -29,3 +28,6 @@ class RegistrationSchema(Schema):
 
 class MessageSchema(Schema):
     message: str
+
+class UpdateBalanceSchema(Schema):
+    balance: float
