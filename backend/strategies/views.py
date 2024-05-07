@@ -23,8 +23,8 @@ def backtest_mac(request, data: BacktestMACSchema):
     return JsonResponse(result, safe=False)
 
 @strategy_router.post('live_backtest/mac/', response={200: dict})
-def live_backtest_mac(request, data: BacktestMACSchema, coin: str = Query(...), days: int = Query(...)):
-    df = fetch_historical_data(coin, days)
+def live_backtest_mac(request, data: BacktestMACSchema):
+    df = fetch_historical_data(data.coin, data.date_range)
     if df.empty:
         return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
     result = calculate_mac(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
@@ -34,6 +34,7 @@ def live_backtest_mac(request, data: BacktestMACSchema, coin: str = Query(...), 
             signals.append((row['timestamp'], 'buy'))
         elif row['positions'] == -1:
             signals.append((row['timestamp'], 'sell'))
+    signal_str = ', '.join([f"{signal_time} {signal_type}" for signal_time, signal_type in signals])
     return JsonResponse({**result, 'signals': signals}, safe=False)
 
 @strategy_router.post('backtest/ema/', response={200: dict})

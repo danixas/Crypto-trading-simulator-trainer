@@ -12,6 +12,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^3.6.0",
     "marked": "^12.0.2",
+    "moment": "^2.30.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.2",
     "react-bootstrap-icons": "^1.11.4",

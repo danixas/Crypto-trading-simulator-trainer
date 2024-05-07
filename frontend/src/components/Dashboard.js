@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import CryptoChart from './charts/CryptoChart';
 import TradeCrypto from './TradeCrypto';
@@ -25,6 +25,10 @@ const Dashboard = () => {
     const [showStrategyInfoModal, setShowStrategyInfoModal] = useState(false);
     const [selectedSavedStrategy, setSelectedSavedStrategy] = useState(null);
 
+    useEffect(() => {
+        console.log('Selected Saved Strategy: ');
+        console.log(selectedSavedStrategy);
+    }, [selectedSavedStrategy]);
 
     const handleSelectedSavedStrategy = (strategy, onSelectedSavedStrategy) => {
         onSelectedSavedStrategy(strategy);

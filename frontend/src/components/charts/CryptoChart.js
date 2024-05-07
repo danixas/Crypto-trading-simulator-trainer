@@ -5,7 +5,15 @@ import 'chartjs-adapter-date-fns';
 
 Chart.register(...registerables);
 
-const CryptoChart = ({ coin, days, live, onPriceUpdate, simulationSpeed, setLatestPrice, selectedSavedStrategy }) => {
+const CryptoChart = ({
+  coin,
+  days,
+  live,
+  onPriceUpdate,
+  simulationSpeed,
+  setLatestPrice,
+  selectedSavedStrategy,
+}) => {
   const chartRef = useRef(null);
   const [prices, setPrices] = useState([]);
   const [liveIndex, setLiveIndex] = useState(0);
@@ -15,36 +23,43 @@ const CryptoChart = ({ coin, days, live, onPriceUpdate, simulationSpeed, setLate
 
   useEffect(() => {
     if (selectedSavedStrategy) {
-      const fetchSignals = async () => {
-        try {
-          const params = new URLSearchParams({ coin_id: coin, days: days });
-          const response = await axios.post(`http://localhost:8000/api/strategies/live_backtest/mac/`, {
-            strategy_name: selectedSavedStrategy.strategy_name,
-            coin: coin,
-            days: days,
-            initial_capital: 1000,
-            max_trade_size_percent: 1,
-            short_term: selectedSavedStrategy.short_term,
-            long_term: selectedSavedStrategy.long_term,
-          }, {
-            headers: {
-              Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`
-            }
-          });
-          if (response.status === 200) {
-            setSignals(response.data.signals);
-          }
-        } catch (error) {
-          console.error('Error fetching signals:', error);
-        }
-      };
-
       fetchSignals();
     }
   }, [selectedSavedStrategy, coin, days]);
 
+  const fetchSignals = async () => {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/strategies/live_backtest/mac/`, {
+        coin,
+        strategy_name: selectedSavedStrategy.strategy_name,
+        date_range: days,
+        initial_capital: selectedSavedStrategy.parameters.initial_capital,
+        max_trade_size_percent: selectedSavedStrategy.parameters.max_trade_size_percent,
+        short_term: selectedSavedStrategy.parameters.short_term,
+        long_term: selectedSavedStrategy.parameters.long_term,
+      }, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`
+        }
+      });
+      if (response.status === 200) {
+        const formattedSignals = response.data.signals.map((signal) => ({
+          timestamp: new Date(signal[0]),
+          signal: signal[1]
+        }));
+        setSignals(formattedSignals);
+      }
+    } catch (error) {
+      console.error('Error fetching signals:', error);
+    }
+  };
+
   useEffect(() => {
-    // Fetch historical data when not in live mode or on initial load
+    console.log('Signals updated:', signals);
+    console.log('Prices:', prices);
+  }, [signals]);
+
+  useEffect(() => {
     if (!live) {
       fetchData();
     }
@@ -54,23 +69,22 @@ const CryptoChart = ({ coin, days, live, onPriceUpdate, simulationSpeed, setLate
         setChartInstance(null);
       }
     };
-  }, [coin, days, live]); // Dependencies include coin, days, and live mode
+  }, [coin, days, live]);
 
   const fetchData = async () => {
     try {
-      const params = new URLSearchParams({ coin_id: coin, days: days });
-      const response = await axios.get(`http://localhost:8000/api/crypto/fetch_historical_data/?${params.toString()}`, {
+      const response = await axios.get(`http://localhost:8000/api/crypto/fetch_historical_data/?coin_id=${coin}&days=${days}`, {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`
         }
       });
       if (response.status === 200 && response.data.length > 0) {
-        const formattedPrices = response.data.map(item => ({
+        const formattedPrices = response.data.map((item) => ({
           x: new Date(item.timestamp),
           y: item.price
         }));
         setPrices(formattedPrices);
-        initChart(formattedPrices); // Initialize chart with historical data
+        initChart(formattedPrices);
       }
     } catch (error) {
       console.error('Error fetching historical data:', error);
@@ -80,77 +94,82 @@ const CryptoChart = ({ coin, days, live, onPriceUpdate, simulationSpeed, setLate
   const initChart = (data) => {
     if (chartInstance) {
       chartInstance.destroy();
-      setChartInstance(null) // Destroy existing chart to avoid reuse problem
+      setChartInstance(null);
     }
     const ctx = chartRef.current.getContext('2d');
     const newChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: data.map(p => p.x),
-        datasets: [{
-          label: `${coin} Price`,
-          data: data,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.1)',
-          pointRadius: 0 // Removes dots for a cleaner line
-        }]
+        labels: data.map((p) => p.x),
+        datasets: [
+          {
+            label: `${coin} Price`,
+            data,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            pointRadius: 10,
+          },
+        ],
       },
       options: {
-       scales: {
+        scales: {
           x: {
             type: 'time',
             time: {
-              tooltipFormat: 'MMM dd, yyyy HH:mm'
-            }
+              tooltipFormat: 'MMM dd, yyyy HH:mm',
+            },
           },
           y: {
             beginAtZero: false,
-          }
+          },
         },
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           tooltip: {
             callbacks: {
-              label: (context) => {
-                const label = context.dataset.label || '';
-                const value = context.formattedValue;
-                const signal = signals.find((signal) => signal.timestamp === context.parsed.x.getTime());
-                if (signal) {
-                  return `${label}: ${value} (${signal.signal})`;
-                }
-                return `${label}: ${value}`;
-              }
-            }
-          }
-        }
-      }
+                label: (context) => {
+                  const label = context.dataset.label || '';
+                  const value = context.formattedValue;
+                  const signal = signals.find((signal) => {
+                    if (signal.timestamp && new Date(context.parsed.x)) {
+                      return signal.timestamp.getTime() === new Date(context.parsed.x).getTime();
+                    }
+                    return false;
+                  });
+                  if (signal) {
+                    return `${label}: ${value} (${signal.signal})`;
+                  }
+                  return `${label}: ${value}`;
+                },
+              },
+          },
+        },
+      },
     });
     setChartInstance(newChartInstance);
   };
 
   useEffect(() => {
     if (live && !isPaused) {
-      //setLiveIndex(0); // Reset the live index when toggling live mode
-      initChart([]); // Initialize chart with no data for live mode
+      initChart([]);
     }
   }, [live]);
 
   useEffect(() => {
-    let intervalId;
     if (live && !isPaused && chartInstance) {
-      intervalId = setInterval(() => {
+      const intervalId = setInterval(() => {
         if (liveIndex < prices.length) {
           const nextPrice = prices[liveIndex];
           chartInstance.data.labels.push(nextPrice.x);
-          chartInstance.data.datasets.forEach(dataset => {
+          chartInstance.data.datasets.forEach((dataset) => {
             dataset.data.push(nextPrice.y);
           });
           chartInstance.update();
           onPriceUpdate(nextPrice.y);
           setLiveIndex(liveIndex + 1);
         } else {
-          clearInterval(intervalId); // Stop the interval when all data has been plotted
+          clearInterval(intervalId);
         }
       }, simulationSpeed);
 
