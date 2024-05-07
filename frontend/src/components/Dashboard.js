@@ -9,6 +9,7 @@ import StrategyInfoModal from './StrategyInfoModal';
 import StrategyModalFactory from './StrategyModalFactory';
 import '../App.css';
 import { useAuth } from '../context/AuthContext';
+import SavedStrategiesDropdown from './SavedStrategiesDropdown';
 
 const Dashboard = () => {
     const { fetchBalance } = useAuth();
@@ -22,7 +23,13 @@ const Dashboard = () => {
     const [backtestResults, setBacktestResults] = useState(null);
     const [showStrategyModal, setShowStrategyModal] = useState(false);
     const [showStrategyInfoModal, setShowStrategyInfoModal] = useState(false);
+    const [selectedSavedStrategy, setSelectedSavedStrategy] = useState(null);
 
+
+    const handleSelectedSavedStrategy = (strategy, onSelectedSavedStrategy) => {
+        onSelectedSavedStrategy(strategy);
+
+    };
     const toggleLiveMode = (isActive) => {
         setLiveMode(isActive);
     };
@@ -99,10 +106,20 @@ const Dashboard = () => {
                             <span>{simulationSpeed} ms</span>
                         </div>
                     </div>
-                    <CryptoChart coin={coin} days={days} live={liveMode} onPriceUpdate={handlePriceUpdate} simulationSpeed={simulationSpeed} />
+                    <CryptoChart 
+                        coin={coin} 
+                        days={days} 
+                        live={liveMode} 
+                        onPriceUpdate={handlePriceUpdate} 
+                        simulationSpeed={simulationSpeed} 
+                        selectedSavedStrategy={selectedSavedStrategy}
+                    />
                 </div>
                 <div className="trade-section">
                     <TradeCrypto coin={coin} currentPrice={currentPrice} fetchBalance={fetchBalance}/>
+                </div>
+                <div>
+                    <SavedStrategiesDropdown onSelectedSavedStrategy={(strategy) => handleSelectedSavedStrategy(strategy, setSelectedSavedStrategy)}/>
                 </div>
             </div>
             <div className="strategy-section">

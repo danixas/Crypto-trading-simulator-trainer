@@ -1,6 +1,6 @@
 from typing import List
 from django.shortcuts import get_list_or_404
-from ninja import Router
+from ninja import Query, Router
 from django.http import JsonResponse
 import pandas as pd
 from crypto.models import HistoricalPrice
@@ -21,6 +21,20 @@ def backtest_mac(request, data: BacktestMACSchema):
         return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
     result = calculate_mac(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
     return JsonResponse(result, safe=False)
+
+@strategy_router.post('live_backtest/mac/', response={200: dict})
+def live_backtest_mac(request, data: BacktestMACSchema, coin: str = Query(...), days: int = Query(...)):
+    df = fetch_historical_data(coin, days)
+    if df.empty:
+        return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
+    result = calculate_mac(df, data.short_term, data.long_term, data.initial_capital, data.max_trade_size_percent)
+    signals = []
+    for index, row in df.iterrows():
+        if row['positions'] == 1:
+            signals.append((row['timestamp'], 'buy'))
+        elif row['positions'] == -1:
+            signals.append((row['timestamp'], 'sell'))
+    return JsonResponse({**result, 'signals': signals}, safe=False)
 
 @strategy_router.post('backtest/ema/', response={200: dict})
 def backtest_ema(request, data: BacktestEMASchema):

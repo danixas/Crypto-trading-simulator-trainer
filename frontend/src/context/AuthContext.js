@@ -5,9 +5,19 @@ const AuthContext = createContext(null);
 
 
 export const AuthProvider = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('accessToken'));
     const [balance, setBalance] = useState(0);
 
+    useEffect(() => {
+        // This effect runs once on component mount, checks if an access token exists and sets the login state accordingly.
+        const accessToken = sessionStorage.getItem('accessToken');
+        if (accessToken) {
+            setIsLoggedIn(true);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            fetchBalance(); // Fetch balance if the user is considered logged in.
+        }
+    }, []);
+    
     const fetchBalance = async () => {
         try {
             const response = await axios.get('http://localhost:8000/api/users/balance/', {

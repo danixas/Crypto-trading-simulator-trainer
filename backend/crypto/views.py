@@ -33,6 +33,7 @@ def trade(request, trade_data: TradeSchema):
                 amountCrypto = total_cost / current_price if current_price else 0
                 if profile.balance >= total_cost:
                     profile.balance -= total_cost
+                    profile.profit_loss -= total_cost
                     profile.holdings[crypto] = profile.holdings.get(crypto, 0.0) + amountCrypto
                     profile.save()
                     transaction = Transaction.objects.create(
@@ -77,10 +78,13 @@ def close_trade(request, transaction_id: int, data: CloseTradeSchema):
         if transaction.type == 'buy':
             transaction.pnl = total_value - (transaction.entry_price * transaction.amount)
             profile.balance += total_value
+            profile.profit_loss += total_value
         elif transaction.type == 'sell':
             transaction.pnl = (transaction.entry_price * transaction.amount) - total_value
             profile.balance += transaction.pnl
+            profile.profit_loss += transaction.pnl
 
+        profile.total_trades += 1
         transaction.is_open = False
         profile.save()
         transaction.save()

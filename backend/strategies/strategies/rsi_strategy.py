@@ -22,10 +22,10 @@ def calculate(df, initial_capital, max_trade_size_percent, period, overbought, o
     df.loc[df['rsi'] > overbought, 'signal'] = -1  # Sell signal
     df['positions'] = df['signal'].diff()
 
-    return execute_trades(df, initial_capital, max_trade_size_percent, overbought, oversold)
+    return execute_trades(df, initial_capital, max_trade_size_percent, period, overbought, oversold)
 
 
-def execute_trades(df, initial_capital, max_trade_size_percent, overbought=70, oversold=30):
+def execute_trades(df, initial_capital, max_trade_size_percent, period=14, overbought=70, oversold=30):
     capital = initial_capital
     current_investment = 0
     pnl = 0
@@ -50,4 +50,18 @@ def execute_trades(df, initial_capital, max_trade_size_percent, overbought=70, o
     losses = num_trades - wins
     win_loss_ratio = wins / losses if losses > 0 else 'infinite'
 
-    return {"pnl": pnl, "numTrades": num_trades, "winLossRatio": win_loss_ratio, "finalCapital": capital}
+    return {
+            "strategy_type": "RSI",
+            "parameters": {
+                "period": period,
+                "overbought": overbought,
+                "oversold": oversold,
+                "initial_capital": initial_capital,
+                "max_trade_size_percent": max_trade_size_percent
+            },
+            # existing returned values
+            "pnl": pnl,
+            "numTrades": num_trades,
+            "winLossRatio": win_loss_ratio,
+            "finalCapital": capital
+        }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="styles.css">  <!-- Link to your CSS file -->
+</head>
+<body>
+    <div class="profile-container">
+        <!-- User Information Card -->
+        <div class="card user-info">
+            <img src="" alt="User Avatar" class="avatar" id="userAvatar">
+            <h3 id="userName"></h3>
+            <p id="userEmail"></p>
+            <button>Edit Profile</button>
+        </div>
+
+        <!-- Trading Statistics Card -->
+        <div class="card trading-stats">
+            <h3>Trading Statistics</h3>
+            <p id="userBalance">Balance: </p>
+            <p id="userTrades">Total Trades: </p>
+            <p id="userProfitLoss">Profit/Loss: </p>
+        </div>
+
+        <!-- Recent Activities Card (Placeholder, can be dynamic later) -->
+        <div class="card recent-activities">
+            <h3>Recent Activities</h3>
+            <ul>
+                <li>Bought Bitcoin</li>
+                <li>Sold Ethereum</li>
+            </ul>
+        </div>
+
+        <!-- Performance Graph Card (Placeholder for now) -->
+        <div class="card performance-graph">
+            <h3>Performance</h3>
+            <img src="path_to_graph.jpg" alt="Performance Graph">
+        </div>
+    </div>
+
+    <script src="profile.js"></script>  <!-- Link to your JS file -->
+</body>
+</html>

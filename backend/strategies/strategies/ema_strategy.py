@@ -8,9 +8,9 @@ def calculate(df, short_span, long_span, initial_capital, max_trade_size_percent
     df['positions'] = df['signal'].diff().fillna(0)  # Fill NaN with 0 to handle the initial row
 
     print(f"First few signals:\n{df[['short_ema', 'long_ema', 'signal', 'positions']].head()}")
-    return execute_trades(df, initial_capital, max_trade_size_percent)
+    return execute_trades(df, initial_capital, max_trade_size_percent, short_span, long_span)
 
-def execute_trades(data, initial_capital, max_trade_size_percent):
+def execute_trades(data, initial_capital, max_trade_size_percent, short_term, long_term):
     capital = initial_capital
     current_investment = 0
     pnl = 0
@@ -39,4 +39,17 @@ def execute_trades(data, initial_capital, max_trade_size_percent):
     win_loss_ratio = wins / losses if losses > 0 else 'infinite'
     print(f"Total PnL: {pnl}, Num Trades: {num_trades}, Win/Loss Ratio: {win_loss_ratio}, Final Capital: {capital}")
 
-    return {"pnl": pnl, "numTrades": num_trades, "winLossRatio": win_loss_ratio, "finalCapital": capital}
+    return {
+        "strategy_type": "EMA",
+        "parameters": {
+            "short_term": short_term,
+            "long_term": long_term,
+            "initial_capital": initial_capital,
+            "max_trade_size_percent": max_trade_size_percent
+        },
+        # existing returned values
+        "pnl": pnl,
+        "numTrades": num_trades,
+        "winLossRatio": win_loss_ratio,
+        "finalCapital": capital
+    }

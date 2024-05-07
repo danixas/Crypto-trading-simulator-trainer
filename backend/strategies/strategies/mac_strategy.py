@@ -10,9 +10,9 @@ def calculate(data, short_term, long_term, initial_capital, max_trade_size_perce
     data['signal'] = np.where(data['short_ma'] > data['long_ma'], 1, 0)
     data['positions'] = data['signal'].diff()
 
-    return execute_trades(data, initial_capital, max_trade_size_percent)
+    return execute_trades(data, initial_capital, max_trade_size_percent, short_term, long_term)
 
-def execute_trades(data, initial_capital, max_trade_size_percent):
+def execute_trades(data, initial_capital, max_trade_size_percent, short_term, long_term):
     capital = initial_capital
     current_investment = 0
     pnl = 0
@@ -39,4 +39,16 @@ def execute_trades(data, initial_capital, max_trade_size_percent):
     losses = num_trades - wins
     win_loss_ratio = wins / losses if losses > 0 else 'infinite'
 
-    return {"pnl": pnl, "numTrades": num_trades, "winLossRatio": win_loss_ratio, "finalCapital": capital}
+    return {
+            "strategy_type": "MAC",
+            "parameters": {
+                "short_term": short_term,
+                "long_term": long_term,
+                "initial_capital": initial_capital,
+                "max_trade_size_percent": max_trade_size_percent
+            },
+            "pnl": pnl,
+            "numTrades": num_trades,
+            "winLossRatio": win_loss_ratio,
+            "finalCapital": capital
+        }
