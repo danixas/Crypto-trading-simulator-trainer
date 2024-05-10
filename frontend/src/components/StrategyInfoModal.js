@@ -39,7 +39,9 @@ const StrategyInfoModal = ({ show, onHide, strategy }) => {
         which can signal shifts in momentum. The RSI's ability to measure 
         momentum alongside price allows traders to discern potential 
         price movements from a unique perspective, often validating or 
-        questioning other indicators' signals.`
+        questioning other indicators' signals.`,
+
+        'Machine Learning Strategy': `WRITE DESCRIPTION HERE`
     };
 
     const getFormattedInfo = (info) => {

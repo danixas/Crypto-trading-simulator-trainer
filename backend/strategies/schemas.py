@@ -34,3 +34,9 @@ class BacktestRSISchema(Schema):
     period: int
     overbought: int
     oversold: int
+
+class BacktestMLSchema(Schema):
+    coin: str
+    strategy_name: str
+    initial_capital: float
+    max_trade_size_percent: float

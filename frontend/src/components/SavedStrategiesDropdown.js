@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const SavedStrategiesDropdown = ({ onSelectedSavedStrategy }) => {
+const SavedStrategiesDropdown = ({ onSelectedSavedStrategy, strategyCount }) => {
     const [strategies, setStrategies] = useState([]);
     const [selectedStrategy, setSelectedStrategy] = useState('');
 
@@ -18,9 +18,9 @@ const SavedStrategiesDropdown = ({ onSelectedSavedStrategy }) => {
                 console.error('Error fetching strategies:', error);
             }
         };
-
+        console.log("strategy count in dropdown: ", strategyCount);
         fetchStrategies();
-    }, []);
+    }, [strategyCount]);
 
     const handleSelectionChange = (e) => {
         setSelectedStrategy(e.target.value);
@@ -32,12 +32,11 @@ const SavedStrategiesDropdown = ({ onSelectedSavedStrategy }) => {
     
     return (
         <div>
-            <h3>Select a Saved Strategy</h3>
             <select value={selectedStrategy} onChange={handleSelectionChange}>
                 <option value="">Select a Strategy</option>
                 {strategies.map(strategy => (
                     <option key={strategy.strategy_name} value={strategy.strategy_name}>
-                        {strategy.strategy_name} - {strategy.strategy_type}
+                        {strategy.strategy_name}
                     </option>
                 ))}
             </select>

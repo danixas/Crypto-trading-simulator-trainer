@@ -111,7 +111,7 @@ def fetch_historical_data(request, coin_id: str = Query(...), days: int = Query(
                 timestamp__range=[start_date, end_date]
             ).order_by('timestamp')
 
-        data = list(historical_data.values('timestamp', 'price'))
+        data = list(historical_data.values('timestamp', 'price', 'granularity', 'market_cap', 'total_volume'))
         return JsonResponse(data, safe=False)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

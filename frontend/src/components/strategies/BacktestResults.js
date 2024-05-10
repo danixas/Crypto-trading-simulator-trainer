@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const BacktestResults = ({ results }) => {
+const BacktestResults = ({ results, onSave }) => {
     const [strategyName, setStrategyName] = useState('');
 
     const saveStrategy = async () => {
+        console.log('Results:', results);
         const params = {
             strategy_name: strategyName,
             strategy_type: results.strategy_type,
@@ -14,6 +15,8 @@ const BacktestResults = ({ results }) => {
             const response = await axios.post('http://localhost:8000/api/users/save_strategy/', params, {
                 headers: { 'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}` }
             });
+
+            onSave();
             alert('Strategy saved successfully!');
         } catch (error) {
             console.error('Error saving strategy:', error);

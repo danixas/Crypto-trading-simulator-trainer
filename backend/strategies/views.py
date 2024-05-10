@@ -5,7 +5,7 @@ from django.http import JsonResponse
 import pandas as pd
 from crypto.models import HistoricalPrice
 from .models import Strategy
-from .schemas import BacktestMACSchema, BacktestEMASchema, BacktestRSISchema, StrategySchema
+from .schemas import BacktestMACSchema, BacktestEMASchema, BacktestRSISchema, BacktestMLSchema, StrategySchema
 from .strategies.mac_strategy import calculate as calculate_mac
 from .strategies.ema_strategy import calculate as calculate_ema
 from .strategies.rsi_strategy import calculate as calculate_rsi
@@ -13,6 +13,22 @@ from backend.authentication import JWTAuth
 import pytz
 
 strategy_router = Router()
+
+@strategy_router.post('backtest/ml/', response={200: dict})
+def backtest_ml(request, data: BacktestMLSchema):
+    result = {
+            "strategy_type": "ML",
+            "parameters": {
+                "coin_id": "bitcoin",
+                "initial_capital": 10000,
+                "max_trade_size_percent": 10
+            },
+            "pnl": 0,
+            "numTrades": 0,
+            "winLossRatio": 0,
+            "finalCapital": 10000
+        }
+    return JsonResponse(result, safe=False)
 
 @strategy_router.post('backtest/mac/', response={200: dict})
 def backtest_mac(request, data: BacktestMACSchema):
@@ -52,6 +68,21 @@ def backtest_rsi(request, data: BacktestRSISchema):
         return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
     result = calculate_rsi(df, data.initial_capital, data.max_trade_size_percent, data.period, data.overbought, data.oversold)
     return JsonResponse(result, safe=False)
+
+@strategy_router.post('live_backtest/rsi/', response={200: dict})
+def live_backtest_rsi(request, data: BacktestRSISchema):
+    df = fetch_historical_data(data.coin, data.date_range)
+    if df.empty:
+        return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
+    result = calculate_rsi(df, data.initial_capital, data.max_trade_size_percent, data.period, data.overbought, data.oversold)
+    signals = []
+    for index, row in df.iterrows():
+        if row['positions'] == 1:
+            signals.append((row['timestamp'], 'buy'))
+        elif row['positions'] == -1:
+            signals.append((row['timestamp'], 'sell'))
+    signal_str = ', '.join([f"{signal_time} {signal_type}" for signal_time, signal_type in signals])
+    return JsonResponse({**result, 'signals': signals}, safe=False)
 
 @strategy_router.get('list/', response=List[StrategySchema], auth=JWTAuth())
 def list_strategies(request):

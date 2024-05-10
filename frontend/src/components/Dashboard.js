@@ -24,11 +24,16 @@ const Dashboard = () => {
     const [showStrategyModal, setShowStrategyModal] = useState(false);
     const [showStrategyInfoModal, setShowStrategyInfoModal] = useState(false);
     const [selectedSavedStrategy, setSelectedSavedStrategy] = useState(null);
+    const [savedStrategyCount, setSavedStrategyCount] = useState(0);
 
     useEffect(() => {
         console.log('Selected Saved Strategy: ');
         console.log(selectedSavedStrategy);
     }, [selectedSavedStrategy]);
+
+    const handleUpdateSavedStrategyCount = () => {
+        setSavedStrategyCount(savedStrategyCount + 1);
+    };
 
     const handleSelectedSavedStrategy = (strategy, onSelectedSavedStrategy) => {
         onSelectedSavedStrategy(strategy);
@@ -95,6 +100,7 @@ const Dashboard = () => {
                             <option value="30">Last 30 days</option>
                             <option value="90">Last 90 days</option>
                         </select>
+                        <SavedStrategiesDropdown onSelectedSavedStrategy={(strategy) => handleSelectedSavedStrategy(strategy, setSelectedSavedStrategy)} strategyCount={savedStrategyCount}/>
                         <button className='modern-button' style={{ backgroundColor: liveMode ? 'green' : 'grey' }} onClick={() => toggleLiveMode(!liveMode)}>Toggle Live Mode</button>
                         <div>
                             <label htmlFor="speedSlider">Simulation Speed (ms): </label>
@@ -122,9 +128,6 @@ const Dashboard = () => {
                 <div className="trade-section">
                     <TradeCrypto coin={coin} currentPrice={currentPrice} fetchBalance={fetchBalance}/>
                 </div>
-                <div>
-                    <SavedStrategiesDropdown onSelectedSavedStrategy={(strategy) => handleSelectedSavedStrategy(strategy, setSelectedSavedStrategy)}/>
-                </div>
             </div>
             <div className="strategy-section">
                 <StrategyList onSelectStrategy={handleStrategySelect} onShowStrategyInfo={handleShowStrategyInfo} />
@@ -145,7 +148,7 @@ const Dashboard = () => {
                     />
                 )}
                 {backtestResults && (
-                    <BacktestResults results={backtestResults} />
+                    <BacktestResults results={backtestResults} onSave={handleUpdateSavedStrategyCount} />
                 )}
                
             </div>
