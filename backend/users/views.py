@@ -114,6 +114,8 @@ def get_user_transactions(request):
 
 @users_router.post('save_strategy/', auth=JWTAuth())
 def save_strategy(request, data: SavedStrategySchema):
+    print("save_strategy data to save:")
+    print(data)
     new_strategy = SavedStrategy.objects.create(
         user=request.auth,
         name=data.strategy_name,

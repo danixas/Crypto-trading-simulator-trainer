@@ -25,7 +25,7 @@ class Trade(models.Model):
 
 class SavedStrategy(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    name = models.CharField(unique=True, max_length=255)
     strategy_type = models.CharField(max_length=50)
     parameters = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)

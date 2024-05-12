@@ -1,9 +1,0 @@
-Django>=3.2,<4.0
-djangorestframework>=3.12.4
-psycopg2>=2.8
-requests>=2.25.1
-django-ninja
-django-cors-headers
-APScheduler
-numpy
-pandas

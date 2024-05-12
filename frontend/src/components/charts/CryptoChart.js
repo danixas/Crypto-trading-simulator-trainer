@@ -8,7 +8,8 @@ const CryptoChart = ({
   live,
   onPriceUpdate,
   simulationSpeed,
-  selectedSavedStrategy
+  selectedSavedStrategy,
+  mlStrategyName,
 }) => {
   const [data, setData] = useState([]);
   const [liveData, setLiveData] = useState([]);

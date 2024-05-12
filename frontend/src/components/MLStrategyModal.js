@@ -11,10 +11,11 @@ const MLStrategyModal = ({ show, handleClose, onRunBacktest, endpoint }) => {
         e.preventDefault();
         const strategyParameters = {
             coin,
-            strategy_name: "ML Strategy",
+            strategy_name: strategyName,
             initial_capital: initialCapital,
             max_trade_size_percent: maxTradeSizePercent
         };
+        console.log('strat parameters tha should be sent to dashboard:', strategyParameters);
         onRunBacktest(strategyParameters, "ml");
         handleClose();
     };

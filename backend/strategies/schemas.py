@@ -38,5 +38,22 @@ class BacktestRSISchema(Schema):
 class BacktestMLSchema(Schema):
     coin: str
     strategy_name: str
+    date_range: int = 90
     initial_capital: float
     max_trade_size_percent: float
+
+
+class TrainMLInput(Schema):
+    user_id: int
+    strategy_id: int
+    coin_id: str = "bitcoin"
+    initial_capital: float = 10000
+    max_trade_size_percent: float = 10
+
+class TrainMLOutput(Schema):
+    strategy_type: str
+    parameters: Dict[str, float]
+    pnl: float
+    numTrades: int
+    winLossRatio: float
+    finalCapital: float

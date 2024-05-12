@@ -17,7 +17,21 @@ const fetchSignals = async (coin, days, selectedSavedStrategy) => {
     if (!selectedSavedStrategy || !selectedSavedStrategy.strategy_name || !selectedSavedStrategy.strategy_type) {
         return []; 
     }
-    const endpoint = selectedSavedStrategy.strategy_type === 'MAC' ? 'mac' : 'rsi';
+    let endpoint='';
+    switch (selectedSavedStrategy.strategy_type) {
+        case 'MAC':
+            endpoint = 'mac';
+            break;
+        case 'RSI':
+            endpoint = 'rsi';
+            break;
+        case 'ML':
+            endpoint = 'ml';
+            break;
+        default:
+            return [];
+    }
+    //const endpoint = selectedSavedStrategy.strategy_type === 'MAC' ? 'mac' : 'rsi';
     const url = `http://localhost:8000/api/strategies/live_backtest/${endpoint}/`;
 
     if (selectedSavedStrategy.strategy_type === 'MAC') {
@@ -39,10 +53,14 @@ const fetchSignals = async (coin, days, selectedSavedStrategy) => {
         });
         if (response.ok) {
             const jsonData = await response.json();
+            console.log('not formatted signals:', jsonData.signals);
+
             const formattedSignals = jsonData.signals.map(signal => ({
                 time: new Date(signal[0]).getTime(),
                 signal: signal[1]
             }));
+            console.log('Signals:', formattedSignals);
+
             return formattedSignals;
         }
         else {
@@ -80,6 +98,36 @@ const fetchSignals = async (coin, days, selectedSavedStrategy) => {
             console.error('Failed to fetch signals');
             return [];
         }
+    }
+    else if(selectedSavedStrategy.strategy_type === 'ML') {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify({
+                coin,
+                strategy_name: selectedSavedStrategy.strategy_name,
+                date_range: days,
+                initial_capital: selectedSavedStrategy.parameters.initial_capital,
+                max_trade_size_percent: selectedSavedStrategy.parameters.max_trade_size_percent,
+                })
+            });
+            console.log("response: ", response);
+            if (response.ok) {
+                const jsonData = await response.json();
+                const formattedSignals = jsonData.signals.map(signal => ({
+                    time: new Date(signal[0]).getTime(),
+                    signal: signal[1]
+                }));
+                console.log('Signals:', formattedSignals);
+                return formattedSignals;
+            }
+            else {
+                console.error('Failed to fetch signals');
+                return [];
+            }
     }
 };
 

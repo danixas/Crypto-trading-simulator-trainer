@@ -36,6 +36,10 @@ const Dashboard = () => {
     };
 
     const handleSelectedSavedStrategy = (strategy, onSelectedSavedStrategy) => {
+        console.log("handle of selected saved strategy: ", strategy);
+        if (strategy.strategy_type === 'ML') {
+            strategy.strategy_name = backtestResults.strategy_name;
+        }
         onSelectedSavedStrategy(strategy);
 
     };
@@ -66,6 +70,7 @@ const Dashboard = () => {
     };
     
     const handleRunBacktest = async (strategyParameters, endpoint) => {
+
         const response = await fetch(`http://localhost:8000/api/strategies/backtest/${endpoint}/`, { // Ensure URL is correctly constructed
             method: 'POST',
             headers: {
@@ -76,6 +81,7 @@ const Dashboard = () => {
         });
         if (response.ok) {
             const data = await response.json();
+            console.log('Backtest results:', data);
             setBacktestResults(data);
         } else {
             console.error('Failed to run backtest', response.statusText);
@@ -148,7 +154,7 @@ const Dashboard = () => {
                     />
                 )}
                 {backtestResults && (
-                    <BacktestResults results={backtestResults} onSave={handleUpdateSavedStrategyCount} />
+                    <BacktestResults results={backtestResults} onSave={handleUpdateSavedStrategyCount}/>
                 )}
                
             </div>
