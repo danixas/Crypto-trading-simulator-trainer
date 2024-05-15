@@ -30,7 +30,7 @@ def simulate_trading(predictions, test_features, initial_capital=10000, max_trad
     trades = []
 
     for i, action in enumerate(predicted_actions):
-        current_price = test_features[i][0]  # Assuming price is the first column in test_features
+        current_price = test_features[i][0]
         if action == 0 and position == 0:  # '0' is 'buy'
             amount_to_invest = (capital * max_trade_size_percent) / 100
             position = amount_to_invest / current_price
@@ -69,17 +69,13 @@ def simulate_trading_live(df, model, scaler, label_encoder, initial_capital=1000
     feature_array = np.column_stack([df['price'], df['RSI']])
     window_size = 5
 
-    # Ensure data is windowed correctly
     if len(df) < window_size:
         raise ValueError(f"Data must have at least {window_size} entries for windowing")
 
-    # Create a rolling window of features
     rolled_features = np.lib.stride_tricks.sliding_window_view(feature_array, window_shape=(window_size, 2)).reshape(-1, window_size * 2)
 
-    # Scale the features
     scaled_features = scaler.transform(rolled_features)  # Ensure correct shape for scaling
 
-    # Predict actions
     predictions = model.predict(scaled_features)  # Reshape is not needed if model expects 2D input
     predicted_actions = np.argmax(predictions, axis=1)
 
@@ -87,7 +83,7 @@ def simulate_trading_live(df, model, scaler, label_encoder, initial_capital=1000
     capital = initial_capital
     position = 0
     trades = []
-    timestamps = df['timestamp'][window_size - 1:].reset_index(drop=True)  # Correct index to match window offset
+    timestamps = df['timestamp'][window_size - 1:].reset_index(drop=True)
 
     for i, action in enumerate(predicted_actions):
         current_price = df.iloc[i + window_size - 1]['price']
