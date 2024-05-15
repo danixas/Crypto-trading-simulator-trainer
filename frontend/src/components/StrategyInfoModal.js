@@ -41,7 +41,18 @@ const StrategyInfoModal = ({ show, onHide, strategy }) => {
         price movements from a unique perspective, often validating or 
         questioning other indicators' signals.`,
 
-        'Machine Learning Strategy': `WRITE DESCRIPTION HERE`
+        'ML Strategy': `The **Machine Learning (ML) Strategy** utilizes advanced 
+        predictive algorithms to analyze historical price data and predict future market trends. 
+        This strategy primarily employs a **Long Short-Term Memory (LSTM) network**, a type of 
+        recurrent neural network that is well-suited to sequence prediction problems such as 
+        time-series data. Users can configure the **LSTM units**, which determine the model's 
+        complexity and its ability to capture patterns in the data. A higher number of units 
+        can potentially capture more complex patterns but may also lead to overfitting, especially 
+        with limited data. The ML strategy adapts to changes in market conditions over time, 
+        allowing it to refine its predictions based on newly available data. This dynamic adjustment 
+        makes it a robust choice for users looking to leverage cutting-edge AI techniques for 
+        enhanced trading decisions. Additionally, this strategy allows users to set initial capital, and maximum trade size percentage, providing 
+        flexibility and control over the risk management and investment strategy.`
     };
 
     const getFormattedInfo = (info) => {

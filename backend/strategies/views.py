@@ -21,14 +21,18 @@ strategy_router = Router()
 
 @strategy_router.post('/backtest/ml/', response={200: dict}, auth=JWTAuth())
 def backtest_ml(request, data: BacktestMLSchema):
-    print("strategy name sent to backtest ml:")
-    print(data)
+    print("Strategy name sent to backtest ML:", data.strategy_name)
+    if(data and data.lstm_units):
+        if(data.lstm_units < 1 or data.lstm_units > 100):
+            data.lstm_units = 50  # Default or corrective action
+
+    print("LSTM units:", data.lstm_units)
     user = request.auth
     user_id = user.id if user else None
-    train_model(data.strategy_name, data.coin, data.initial_capital, data.max_trade_size_percent, user_id)
-    model, scaler, label_encoder, X_test, test_prices = load_model_components(user_id, data.strategy_name)
+    train_model(data.strategy_name, data.coin, data.initial_capital, data.max_trade_size_percent, user_id, data.lstm_units)
+    model, scaler, label_encoder, X_test, test_features = load_model_components(user_id, data.strategy_name)
     predictions = model.predict(X_test)
-    simulation_results = simulate_trading(predictions, test_prices, data.initial_capital, data.max_trade_size_percent)
+    simulation_results = simulate_trading(predictions, test_features, data.initial_capital, data.max_trade_size_percent)
 
     return JsonResponse({**simulation_results, 'strategy_name': data.strategy_name}, safe=False)
 
@@ -43,7 +47,7 @@ def live_backtest_ml(request, data: BacktestMLSchema):
         return JsonResponse({"message": "No data available for trading.", "pnl": 0, "numTrades": 0, "winLossRatio": "n/a", "finalCapital": data.initial_capital}, status=200)
 
     result = simulate_trading_live(df, model, scaler, label_encoder, data.initial_capital, data.max_trade_size_percent)
-    return JsonResponse(result)
+    return JsonResponse({**result, 'strategy_name': data.strategy_name}, safe=False)
 
 @strategy_router.post('backtest/mac/', response={200: dict})
 def backtest_mac(request, data: BacktestMACSchema):

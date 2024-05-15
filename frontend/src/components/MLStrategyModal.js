@@ -6,14 +6,21 @@ const MLStrategyModal = ({ show, handleClose, onRunBacktest, endpoint }) => {
     const [coin, setCoin] = useState('bitcoin');
     const [initialCapital, setInitialCapital] = useState(10000);
     const [maxTradeSizePercent, setMaxTradeSizePercent] = useState(10);
+    const [lstmUnits, setLstmUnits] = useState(50);
 
     const handleSubmit = async (e) => {
+        const isFormValid = strategyName && lstmUnits >= 1 && lstmUnits <= 100;
         e.preventDefault();
+        if (!isFormValid) {
+            alert('Please correct the errors before submitting.');
+            return;
+        }
         const strategyParameters = {
             coin,
             strategy_name: strategyName,
             initial_capital: initialCapital,
-            max_trade_size_percent: maxTradeSizePercent
+            max_trade_size_percent: maxTradeSizePercent,
+            lstm_units: lstmUnits
         };
         console.log('strat parameters tha should be sent to dashboard:', strategyParameters);
         onRunBacktest(strategyParameters, "ml");
@@ -34,6 +41,7 @@ const MLStrategyModal = ({ show, handleClose, onRunBacktest, endpoint }) => {
                             value={strategyName}
                             onChange={e => setStrategyName(e.target.value)}
                             placeholder="Enter strategy name"
+                            required
                         />
                     </Form.Group>
                     <Form.Group controlId="strategyCoin">
@@ -59,6 +67,18 @@ const MLStrategyModal = ({ show, handleClose, onRunBacktest, endpoint }) => {
                             value={maxTradeSizePercent}
                             onChange={e => setMaxTradeSizePercent(parseFloat(e.target.value))}
                         />
+                    </Form.Group>
+                    <Form.Group controlId="strategyLstmUnits">
+                        <Form.Label>LSTM units</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={lstmUnits}
+                            onChange={e => setLstmUnits(parseFloat(e.target.value))}
+                            isInvalid={lstmUnits < 1 || lstmUnits > 100}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            Please enter a value between 1 and 100.
+                        </Form.Control.Feedback>
                     </Form.Group>
                     <Button variant="primary" type="submit">
                         Train Model

@@ -41,6 +41,7 @@ class BacktestMLSchema(Schema):
     date_range: int = 90
     initial_capital: float
     max_trade_size_percent: float
+    lstm_units: int = 50
 
 
 class TrainMLInput(Schema):

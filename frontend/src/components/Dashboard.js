@@ -37,7 +37,7 @@ const Dashboard = () => {
 
     const handleSelectedSavedStrategy = (strategy, onSelectedSavedStrategy) => {
         console.log("handle of selected saved strategy: ", strategy);
-        if (strategy.strategy_type === 'ML') {
+        if (strategy && strategy.strategy_type === 'ML' && backtestResults) {
             strategy.strategy_name = backtestResults.strategy_name;
         }
         onSelectedSavedStrategy(strategy);

@@ -1,0 +1,9 @@
+[run]
+source =
+    ./crypto
+    ./users
+    ./strategies
+omit =
+    */migrations/*
+    */__init__.py
+    backend/*

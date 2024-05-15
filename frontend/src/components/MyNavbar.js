@@ -57,7 +57,7 @@ const MyNavbar = () => {
                                         />
                                         <Button variant="outline-success" className="me-2" type="submit">Reset Balance</Button>
                                     </InputGroup>
-                                    
+                                    <Button variant="outline-primary" onClick={() => navigate('/profile')} className="me-2">Profile</Button>
                                     <Button variant="outline-danger" onClick={handleLogout} className="ms-2">Logout</Button>
                                 </>
                             )}

@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from ninja.security import HttpBearer
+from django.core.exceptions import ValidationError
 
 from crypto.models import Transaction
 from .models import SavedStrategy, UserProfile, Trade
@@ -114,8 +115,11 @@ def get_user_transactions(request):
 
 @users_router.post('save_strategy/', auth=JWTAuth())
 def save_strategy(request, data: SavedStrategySchema):
-    print("save_strategy data to save:")
-    print(data)
+
+    existing_strategy = SavedStrategy.objects.filter(user=request.auth, name=data.strategy_name).first()
+    if existing_strategy:
+        raise ValidationError("Strategy name already exists.")
+    
     new_strategy = SavedStrategy.objects.create(
         user=request.auth,
         name=data.strategy_name,
