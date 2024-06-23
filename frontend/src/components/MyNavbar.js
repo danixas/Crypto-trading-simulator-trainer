@@ -33,7 +33,7 @@ const MyNavbar = () => {
         <>
             <Navbar bg="light" expand="lg">
                 <Container fluid>
-                    <Navbar.Brand href="#" onClick={() => navigate('/')}>Home</Navbar.Brand>
+                    <Navbar.Brand href="#" onClick={() => navigate('/dashboard')}>Home</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="ms-auto">
